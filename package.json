@@ -1,0 +1,27 @@
+{
+  "name": "maratona-ibm-desafio-8",
+  "version": "1.0.0",
+  "description": "Desafio 8 da maratona IBM, desafio final",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pcborges/maratona-ibm-desafio-8.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pcborges/maratona-ibm-desafio-8/issues"
+  },
+  "homepage": "https://github.com/pcborges/maratona-ibm-desafio-8#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "ibm-watson": "^5.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  }
+}
