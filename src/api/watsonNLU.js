@@ -22,17 +22,18 @@ async function getEntitiesNLU(textInput) {
     },
   };
 
-  naturalLanguageUnderstanding
+  const result = await naturalLanguageUnderstanding
     .analyze(analyzeParams)
     .then((analysisResults) => {
-      
-      const entities = JSON.stringify(analysisResults, null, 2);
-      console.log(entities)
-      return entities;
+      return analysisResults;
+
     })
     .catch((err) => {
-      return { error: err };
+      return err;
     });
+
+    return result
+
 }
 
 module.exports = { getEntitiesNLU };

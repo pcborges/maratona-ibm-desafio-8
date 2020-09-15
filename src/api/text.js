@@ -1,40 +1,53 @@
-const { getEntitiesNLU } = require('./watsonNLU')
+const { getEntitiesNLU } = require("./watsonNLU");
 
-const textProcessor = async (req, res) => {
+const textProcessor = async (text, car) => {
   // Primeiro consulta a NLU para voltar as entidades
-  res.send(req.body.text)
-  const texto = "O Fiat Uno é um bom carro, com motor muito forte e consumo incrível"
-//   const entities = await getEntitiesNLU(texto)
-//   res.json(entities)
+  try {
+    const dataNLU = await getEntitiesNLU(text);
+    const entitiesNLU = await extractEntities(dataNLU);
+    const recommendationEntity = await recommendation(entitiesNLU);
+    let car = "";
+    if (recommendationEntity) {
+      car = getRecommendedCar(recommendationEntity.entity);
+    } 
+
+    return {"recommendation": car, "entities": [entitiesNLU]};
+  } catch (err) {
+    console.log("Deu Ruim", err);
+    return { Error: err };
+  }
+
+  //   res.json(entities)
   // Depois filtra apenas as entidades, sentimentos e o que foi identificado como mention
 
   // Agora executa a lógica para o processamento da recomendação com base no objeto e na regra
-
 };
 
+function extractEntities(object) {
+  return object.result.entities.map((el) => {
+    return { entity: el.type, sentiment: el.sentiment.score, mention: el.text };
+  });
+}
+
 function recommendation(objeto) {
-  const entities = objeto.entities;
-//   const positives = entities.filter((entry) => {
-//     return entry.sentiment > 0;
-//   });
+  const entities = objeto;
+  //   const positives = entities.filter((entry) => {
+  //     return entry.sentiment > 0;
+  //   });
   const negatives = entities.filter((entry) => {
     return entry.sentiment < 0;
   });
 
   // Ver se não existe negativas, e retornar objeto vazio pois não há recomendação
   if (negatives.length == 0) {
-    return {
-      recommendation: "",
-      entities: [],
-    };
+    return null;
   }
 
-  return getWorstSentiment(negatives)
-
+  return getWorstSentiment(negatives);
 }
 
 function getWorstSentiment(negativeEntities) {
-  const entities = negativeEntities
+  const entities = negativeEntities;
   let worstSentiment = { sentiment: 0 };
   entities.forEach((entry) => {
     if (worstSentiment.sentiment > entry.sentiment) {
@@ -65,39 +78,45 @@ function getWorstSentiment(negativeEntities) {
       "DESIGN",
       "ACESSORIOS",
     ];
-    for(let i = 0; i < criteryItems.length; i++){
-        let pos = tiebrakerCriteria.map(e => e.entity).indexOf(criteryItems[i]);
-        if(pos >= 0){
-            worstSentiment = tiebrakerCriteria[pos]
-            break;
-        }
+    for (let i = 0; i < criteryItems.length; i++) {
+      let pos = tiebrakerCriteria.map((e) => e.entity).indexOf(criteryItems[i]);
+      if (pos >= 0) {
+        worstSentiment = tiebrakerCriteria[pos];
+        break;
+      }
     }
-    
   }
 
   return worstSentiment;
 }
 
-retornoNLU = {
-  recommendation: "MAREA",
-  entities: [
-    {
-      entity: "CONSUMO",
-      sentiment: -0.999,
-      mention: "10.7km/l",
-    },
-    {
-      entity: "CONFORTO",
-      sentiment: 0.799,
-      mention: "Banco de couro",
-    },
-    {
-      entity: "SEGURANCA",
-      sentiment: -0.899,
-      mention: "Airbag",
-    },
-  ],
-};
+function getRecommendedCar(entity) {
+  switch (entity) {
+    case "SEGURANCA":
+      return "TORO";
+    case "CONSUMO":
+      return "FIAT 500";
+    case "DESEMPENHO":
+      return "MAREA";
+    case "MANUTENCAO":
+      return "FIORINO";
+    case "CONFORTO":
+      return "LINEA";
+    case "DESIGN":
+      return "TORO";
+    case "ACESSORIOS":
+      return "RENEGADE";
+  }
+}
 
+// TORO
+// DUCATO
+// FIORINO
+// CRONOS
+// FIAT 500
+// MAREA
+// LINEA
+// ARGO
+// RENEGADE
 
 module.exports = { textProcessor };
