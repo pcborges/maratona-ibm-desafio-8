@@ -11,21 +11,28 @@ const naturalLanguageUnderstanding = new NaturalLanguageUnderstandingV1({
   serviceUrl: nluCredentials.url,
 });
 
-const analyzeParams = {
-  text: "O Fiat Uno é um carro fraco e o motor é horrível",
-  features: {
-    entities: {
-      model: ksCredentials.modelId,
-      sentiment: true,
+async function getEntitiesNLU(textInput) {
+  const analyzeParams = {
+    text: textInput,
+    features: {
+      entities: {
+        model: wksCredentials.modelId,
+        sentiment: true,
+      },
     },
-  },
-};
+  };
 
-naturalLanguageUnderstanding
-  .analyze(analyzeParams)
-  .then((analysisResults) => {
-    console.log(JSON.stringify(analysisResults, null, 2));
-  })
-  .catch((err) => {
-    console.log("error:", err);
-  });
+  naturalLanguageUnderstanding
+    .analyze(analyzeParams)
+    .then((analysisResults) => {
+      
+      const entities = JSON.stringify(analysisResults, null, 2);
+      console.log(entities)
+      return entities;
+    })
+    .catch((err) => {
+      return { error: err };
+    });
+}
+
+module.exports = { getEntitiesNLU };
