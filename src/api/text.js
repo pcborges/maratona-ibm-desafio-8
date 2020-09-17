@@ -4,14 +4,14 @@ const textProcessor = async (text, car) => {
   // Primeiro consulta a NLU para voltar as entidades
   try {
     const dataNLU = await getEntitiesNLU(text);
-    const entitiesNLU = await extractEntities(dataNLU);
-    const recommendationEntity = await recommendation(entitiesNLU);
-    let car = "";
-    if (recommendationEntity) {
-      car = getRecommendedCar(recommendationEntity.entity);
-    } 
+    const entitiesNLU = await sanitizeEntities(dataNLU);
+    const negativeEntities = await getNegativeEntities(entitiesNLU);
+    const worstSentimentFiltered = await getWorstSentiment(negativeEntities);
+    if (worstSentimentFiltered) {
+      recommendedCar = getRecommendedCar(worstSentimentFiltered.entity, car);
+    }
 
-    return {"recommendation": car, "entities": [entitiesNLU]};
+    return { recommendation: recommendedCar, entities: entitiesNLU };
   } catch (err) {
     console.log("Deu Ruim", err);
     return { Error: err };
@@ -23,52 +23,50 @@ const textProcessor = async (text, car) => {
   // Agora executa a lógica para o processamento da recomendação com base no objeto e na regra
 };
 
-function extractEntities(object) {
+function sanitizeEntities(object) {
   return object.result.entities.map((el) => {
     return { entity: el.type, sentiment: el.sentiment.score, mention: el.text };
   });
 }
 
-function recommendation(objeto) {
-  const entities = objeto;
-  //   const positives = entities.filter((entry) => {
-  //     return entry.sentiment > 0;
-  //   });
+function getNegativeEntities(entities) {
   const negatives = entities.filter((entry) => {
-    return entry.sentiment < 0;
+    return entry.sentiment < 0 && entry.entity != "MODELO";
   });
 
   // Ver se não existe negativas, e retornar objeto vazio pois não há recomendação
   if (negatives.length == 0) {
     return null;
+  } else {
+    return negatives;
   }
-
-  return getWorstSentiment(negatives);
 }
 
 function getWorstSentiment(negativeEntities) {
-  const entities = negativeEntities;
+  const groupedNegativeEntities = groupEntities(negativeEntities);
   let worstSentiment = { sentiment: 0 };
-  entities.forEach((entry) => {
+  groupedNegativeEntities.forEach((entry) => {
     if (worstSentiment.sentiment > entry.sentiment) {
       worstSentiment = entry;
     }
   });
 
   // procurar se existem sentimentos com mesmo peso
-  tiebrakerCriteria = [];
-  tiebrakerCriteria.push(worstSentiment);
-  entities.forEach((entry) => {
+  tiebreakerCriteria = [];
+  tiebreakerCriteria.push(worstSentiment);
+  groupedNegativeEntities.forEach((entry) => {
     if (
       worstSentiment.sentiment + 0.1 >= entry.sentiment &&
       worstSentiment.sentiment - 0.1 <= entry.sentiment &&
       worstSentiment.entity != entry.entity
     ) {
-      tiebrakerCriteria.push(entry);
+      tiebreakerCriteria.push(entry);
     }
   });
 
-  if (tiebrakerCriteria.length > 1) {
+  console.log("TIEBREAKE", tiebreakerCriteria)
+
+  if (tiebreakerCriteria.length > 1) {
     const criteryItems = [
       "SEGURANCA",
       "CONSUMO",
@@ -79,9 +77,11 @@ function getWorstSentiment(negativeEntities) {
       "ACESSORIOS",
     ];
     for (let i = 0; i < criteryItems.length; i++) {
-      let pos = tiebrakerCriteria.map((e) => e.entity).indexOf(criteryItems[i]);
+      let pos = tiebreakerCriteria
+        .map((e) => e.entity)
+        .indexOf(criteryItems[i]);
       if (pos >= 0) {
-        worstSentiment = tiebrakerCriteria[pos];
+        worstSentiment = tiebreakerCriteria[pos];
         break;
       }
     }
@@ -90,10 +90,11 @@ function getWorstSentiment(negativeEntities) {
   return worstSentiment;
 }
 
-function getRecommendedCar(entity) {
+function getRecommendedCar(entity, car) {
+  car = car.toUpperCase()
   switch (entity) {
     case "SEGURANCA":
-      return "TORO";
+      return car.includes("TORO") ? "XXX" : "TORO"
     case "CONSUMO":
       return "FIAT 500";
     case "DESEMPENHO":
@@ -103,11 +104,64 @@ function getRecommendedCar(entity) {
     case "CONFORTO":
       return "LINEA";
     case "DESIGN":
-      return "TORO";
+      return car.includes("TORO") ? "XXX" : "TORO"
     case "ACESSORIOS":
       return "RENEGADE";
   }
 }
+
+function groupEntities(entities) {
+  var result = entities.reduce(function (acc, val) {
+    var o = acc
+      .filter(function (obj) {
+        return obj.entity == val.entity;
+      })
+      .pop() || { entity: val.entity, sentiment: 0 };
+
+    o.sentiment += val.sentiment;
+    acc.push(o);
+    return acc;
+  }, []);
+  let filteredResult = result.filter(function (itm, i, a) {
+    return i == a.indexOf(itm);
+  });
+  return filteredResult;
+}
+
+testeEntities = [
+  {
+    entity: "MODELO",
+    sentiment: -0.971014,
+    mention: "Marea",
+  },
+  {
+    entity: "DESEMPENHO",
+    sentiment: -0.971014,
+    mention: "motor muito fraco",
+  },
+  {
+    entity: "SEGURANCA",
+    sentiment: -0.971014,
+    mention: "freios",
+  },
+  {
+    entity: "DESIGN",
+    sentiment: -0.971014,
+    mention: "design muito inovador",
+  },
+  {
+    entity: "DESIGN",
+    sentiment: -0.971014,
+    mention: "design bem feito",
+  },
+  {
+    entity: "MODELO",
+    sentiment: -0.971014,
+    mention: "resto",
+  },
+];
+
+groupEntities(testeEntities);
 
 // TORO
 // DUCATO

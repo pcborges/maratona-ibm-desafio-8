@@ -13,30 +13,34 @@ const speechToText = new SpeechToTextV1({
 var params = {
   objectMode: true,
   contentType: "audio/flac",
-  model: "pt-BR_BroadbandModel",
-  keywords: ["carro", "desempenho", "conforto"],
-  keywordsThreshold: 0.5,
-  maxAlternatives: 3,
+  model: "pt-BR_NarrowbandModel",
 };
 
 // Create the stream.
-var recognizeStream = speechToText.recognizeUsingWebSocket(params);
+async function getAudioTranscription(filePath) {
+  var recognizeStream = speechToText.recognizeUsingWebSocket(params);
 
-// Pipe in the audio.
-fs.createReadStream("./assets/audio_sample.flac").pipe(recognizeStream);
+  // Pipe in the audio.
+  fs.createReadStream(filePath).pipe(recognizeStream);
+  // Listen for events.
+  recognizeStream.on("data", function (event) {
+     data = event
+    onEvent("Data:", event);
+  });
+  recognizeStream.on("error", function (event) {
+    onEvent("Error:", event);
+  });
+  recognizeStream.on("close", function (event) {
+    onEvent("Close:", event);
+  });
+  recognizeStream.on("end", function (event) {
+    onEvent("FIM:", event);
+  });
 
-// Listen for events.
-recognizeStream.on("data", function (event) {
-  onEvent("Data:", event);
-});
-recognizeStream.on("error", function (event) {
-  onEvent("Error:", event);
-});
-recognizeStream.on("close", function (event) {
-  onEvent("Close:", event);
-});
-
-// Display events on the console.
-function onEvent(name, event) {
-  console.log(name, JSON.stringify(event, null, 2));
+  // Display events on the console.
+  function onEvent(name, event) {
+    console.log(name, JSON.stringify(event, null, 2));
+  }
 }
+
+module.exports = { getAudioTranscription };
