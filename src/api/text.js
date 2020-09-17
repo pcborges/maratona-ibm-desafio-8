@@ -6,6 +6,12 @@ const textProcessor = async (text, car) => {
     const dataNLU = await getEntitiesNLU(text);
     const entitiesNLU = await sanitizeEntities(dataNLU);
     const negativeEntities = await getNegativeEntities(entitiesNLU);
+    if (!negativeEntities) {
+      return {
+        recommendation: "",
+        entities: [],
+      };
+    }
     const worstSentimentFiltered = await getWorstSentiment(negativeEntities);
     if (worstSentimentFiltered) {
       recommendedCar = getRecommendedCar(worstSentimentFiltered.entity, car);
@@ -13,7 +19,6 @@ const textProcessor = async (text, car) => {
 
     return { recommendation: recommendedCar, entities: entitiesNLU };
   } catch (err) {
-    console.log("Deu Ruim", err);
     return { Error: err };
   }
 
@@ -64,7 +69,7 @@ function getWorstSentiment(negativeEntities) {
     }
   });
 
-  console.log("TIEBREAKE", tiebreakerCriteria)
+  console.log("TIEBREAKE", tiebreakerCriteria);
 
   if (tiebreakerCriteria.length > 1) {
     const criteryItems = [
@@ -91,10 +96,10 @@ function getWorstSentiment(negativeEntities) {
 }
 
 function getRecommendedCar(entity, car) {
-  car = car.toUpperCase()
+  car = car.toUpperCase();
   switch (entity) {
     case "SEGURANCA":
-      return car.includes("TORO") ? "XXX" : "TORO"
+      return car.includes("TORO") ? "XXX" : "TORO";
     case "CONSUMO":
       return "FIAT 500";
     case "DESEMPENHO":
@@ -104,13 +109,14 @@ function getRecommendedCar(entity, car) {
     case "CONFORTO":
       return "LINEA";
     case "DESIGN":
-      return car.includes("TORO") ? "XXX" : "TORO"
+      return car.includes("TORO") ? "XXX" : "TORO";
     case "ACESSORIOS":
       return "RENEGADE";
   }
 }
 
 function groupEntities(entities) {
+  console.log("GROUP ENTITIES", entities);
   var result = entities.reduce(function (acc, val) {
     var o = acc
       .filter(function (obj) {
@@ -127,41 +133,6 @@ function groupEntities(entities) {
   });
   return filteredResult;
 }
-
-testeEntities = [
-  {
-    entity: "MODELO",
-    sentiment: -0.971014,
-    mention: "Marea",
-  },
-  {
-    entity: "DESEMPENHO",
-    sentiment: -0.971014,
-    mention: "motor muito fraco",
-  },
-  {
-    entity: "SEGURANCA",
-    sentiment: -0.971014,
-    mention: "freios",
-  },
-  {
-    entity: "DESIGN",
-    sentiment: -0.971014,
-    mention: "design muito inovador",
-  },
-  {
-    entity: "DESIGN",
-    sentiment: -0.971014,
-    mention: "design bem feito",
-  },
-  {
-    entity: "MODELO",
-    sentiment: -0.971014,
-    mention: "resto",
-  },
-];
-
-groupEntities(testeEntities);
 
 // TORO
 // DUCATO
