@@ -13,7 +13,7 @@ const speechToText = new SpeechToTextV1({
 var params = {
   objectMode: true,
   contentType: "audio/flac",
-  model: "pt-BR_NarrowbandModel",
+  model: "pt-BR_BroadbandModel",
 };
 
 // Create the stream.

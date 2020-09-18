@@ -17,6 +17,7 @@ app.post("/api/recommendation", upload.single("audio"), async (req, res) => {
       const textSanitized = transcription.results
         .map((el) => el.alternatives[0].transcript)
         .join("");
+      console.log("Texto sanitizado", textSanitized)
       const processed = await textProcessor(textSanitized, req.body.car);
       res.json(processed);
     } else if (req.body.text && req.body.car && !req.file) {
@@ -36,7 +37,7 @@ app.post("/api/recommendation", upload.single("audio"), async (req, res) => {
   }
 });
 
-const port = process.env.port || 3000;
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  console.log(`Executando na porta ${port}...`);
+  console.log(`Estou executando na porta ${port}...`);
 });
