@@ -36,7 +36,7 @@ app.post("/api/recommendation", upload.single("audio"), async (req, res) => {
   }
 });
 
-const port = 3000;
+const port = process.env.port || 3000;
 app.listen(port, () => {
   console.log(`Executando na porta ${port}...`);
 });

@@ -1,0 +1,11 @@
+  applications:
+  - name: maratona-cf-desafio-8
+    path: .
+    command: node index.js
+    instances: 1
+    routes:
+      - route: pcborges-d8.mybluemix.net
+    random-route: true
+    memory: 128M
+    env:
+      LOCATION: 'IBM Cloud'

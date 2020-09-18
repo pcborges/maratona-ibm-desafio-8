@@ -5,6 +5,7 @@ const textProcessor = async (text, car) => {
   try {
     const dataNLU = await getEntitiesNLU(text);
     const entitiesNLU = await sanitizeEntities(dataNLU);
+    console.log("ENTIDADES", entitiesNLU)
     const negativeEntities = await getNegativeEntities(entitiesNLU);
     if (!negativeEntities) {
       return {
@@ -99,19 +100,19 @@ function getRecommendedCar(entity, car) {
   car = car.toUpperCase();
   switch (entity) {
     case "SEGURANCA":
-      return car.includes("TORO") ? "XXX" : "TORO";
+      return car.includes("TORO") ? "RENEGADE" : "TORO";
     case "CONSUMO":
-      return "FIAT 500";
+      return car.includes("ARGO") ? "CRONOS" : "ARGO";
     case "DESEMPENHO":
-      return "MAREA";
+      return car.includes("MAREA") ? "FIAT 500" : "MAREA";
     case "MANUTENCAO":
-      return "FIORINO";
+      return car.includes("FIORINO") ? "ARGO" : "FIORINO";
     case "CONFORTO":
-      return "LINEA";
+      return car.includes("LINEA") ? "RENEGADE" : "LINEA";
     case "DESIGN":
-      return car.includes("TORO") ? "XXX" : "TORO";
+      return car.includes("TORO") ? "RENEGADE" : "TORO";
     case "ACESSORIOS":
-      return "RENEGADE";
+      return car.includes("MAREA") ? "RENEGADE" : "MAREA";
   }
 }
 
